@@ -15,6 +15,25 @@ Forked from the system described in [We Accidentally Built an AI Code Reviewer T
 
 Cost: ~$3 per review on a typical 400-500 line diff (Haiku + Sonnet + Opus).
 
+## How it works
+
+The pipeline has a cheap deterministic phase before any model runs, then three reviewer agents in parallel, then a cleanup pass:
+
+1. **Classify, then trim (no inference cost).** Plain code looks at the changed file paths and classifies the PR (`frontend`, `backend`, `mixed`, etc.). Each reviewer profile is stripped down to just the sections relevant to that classification before any agent reads it — a `.tsx`-only PR never pays to load someone's Ruby/Rails rules. This runs in milliseconds and shrinks what the models have to read.
+
+2. **Three reviewer agents, in parallel, each on a different model tier:**
+   - **Team conventions** (Sonnet) — reads the bundled, trimmed reviewer profiles + `checklist.md`. This is the synthesis-heavy pass, so it gets the stronger model: Haiku reading eleven profiles in one shot returns a handful of findings, Sonnet on the same input returns several times more.
+   - **General engineering review** (Haiku) — universal correctness/security/quality checks, independent of team convention. Narrow and prescriptive enough that Haiku handles it well.
+   - **Generic PR review** (Haiku) — a holistic pass over the diff: logic, tests, performance, security. Same reasoning — bounded scope, cheaper model is enough.
+
+3. **Deduplicate (no model call).** Findings from the three agents are merged in plain code: same file + nearby line + same category collapses to one finding, keeping the highest severity and the union of which reviewers flagged it.
+
+4. **Opus skeptic pass.** One Opus agent re-reads the diff against the merged findings and drops anything with a hallucinated line number, insufficient evidence, or a pattern applied too broadly. It's cheaper to over-produce findings with fast models and prune with a strong one than to make every fast-model finding perfect up front.
+
+5. **Escalate if the signal is thin.** If the team-conventions pass returns unusually few findings, or the PR touches an area historically owned by a specific reviewer, a few extra targeted agents re-run against just the relevant profile(s) before the skeptic pass runs again on the combined set.
+
+**Why tiered models matter here:** going from a single cheap pass to full multi-agent review is what makes findings attributable and catches patterns a single call merges or drops — but running every agent on the frontier model doesn't pay for itself. An earlier, untiered version of this pipeline ran thirteen Opus agents per review (~$20 on a 469-line diff). Tiering by task — Haiku for breadth, Sonnet for synthesis, Opus only as the skeptic — cut that to ~$3 per review while surfacing *more* issues, not fewer, because the deterministic pre-phase and dedup step free up the model budget for the checks that actually need judgment.
+
 ## Prerequisites
 
 - [Claude Code](https://claude.ai/code)
@@ -46,7 +65,7 @@ Or write profiles manually — see `team-members/_template.md` for the format.
 
 ### 4. Update checklist.md
 
-Replace the placeholder checklist with your team's actual conventions — framework preferences, naming rules, test requirements, etc.
+Unlike the reviewer profiles, `checklist.md` isn't mined — it's meant to be written and maintained by hand. Replace the placeholder checklist with your team's actual conventions — framework preferences, naming rules, test requirements, etc. Treat it as a living document your team edits directly, not something the tool regenerates for you.
 
 ### 5. Run it
 
