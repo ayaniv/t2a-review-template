@@ -2,7 +2,7 @@
 
 > An AI code reviewer that thinks like your team — built from your team's actual PR comment history.
 
-Forked from the system described in [We Accidentally Built an AI Code Reviewer That Thinks Like Us](https://medium.com/@ayaniv29/we-accidentally-built-an-ai-code-reviewer-that-thinks-like-us-5527486385bf).
+Forked from the system described in [We Accidentally Built an AI Code Reviewer That Thinks Like Us](https://honeybook.engineering/we-accidentally-built-an-ai-code-reviewer-that-thinks-like-us-411f7c083629).
 
 ## What it does
 
