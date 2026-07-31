@@ -25,6 +25,7 @@ Read `config.md` to get the list of repos to search.
 ## Step 2 — Collect review comments (last 3 years, all PRs)
 
 ```bash
+T2A_TMP=$(mktemp -d)  # private per-run dir; fixed /tmp paths are world-readable and tamperable
 SINCE=$(date -v-3y +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -d '3 years ago' +%Y-%m-%dT%H:%M:%SZ)
 ```
 
@@ -32,29 +33,29 @@ For each repo in `config.md`, get all PR numbers the user reviewed:
 
 ```bash
 gh api "search/issues?q=repo:<OWNER>/<REPO>+is:pr+reviewed-by:<USERNAME>+created:>${SINCE}&per_page=100" \
-  --paginate --jq '.items[].number' > /tmp/t2a-prs-<REPO>.txt
+  --paginate --jq '.items[].number' > "$T2A_TMP/prs-<REPO>.txt"
 ```
 
 Then for every PR, fetch their inline comments and review bodies:
 
 ```bash
-> /tmp/t2a-comments-<REPO>.jsonl
+> "$T2A_TMP/comments-<REPO>.jsonl"
 while read PR; do
   gh api "repos/<OWNER>/<REPO>/pulls/${PR}/comments" \
     --jq --arg user "<USERNAME>" --arg pr "$PR" --arg repo "<REPO>" \
     '[.[] | select(.user.login == $user) | {pr: $pr, repo: $repo, path: .path, body: .body, created_at: .created_at}][]' \
-    2>/dev/null >> /tmp/t2a-comments-<REPO>.jsonl
+    2>/dev/null >> "$T2A_TMP/comments-<REPO>.jsonl"
 
   gh api "repos/<OWNER>/<REPO>/pulls/${PR}/reviews" \
     --jq --arg user "<USERNAME>" --arg pr "$PR" --arg repo "<REPO>" \
     '[.[] | select(.user.login == $user and (.body | length) > 20) | {pr: $pr, repo: $repo, type: "review_body", body: .body}][]' \
-    2>/dev/null >> /tmp/t2a-comments-<REPO>.jsonl
-done < /tmp/t2a-prs-<REPO>.txt
+    2>/dev/null >> "$T2A_TMP/comments-<REPO>.jsonl"
+done < "$T2A_TMP/prs-<REPO>.txt"
 ```
 
 Merge all repo files:
 ```bash
-cat /tmp/t2a-comments-*.jsonl > /tmp/t2a-all-comments.jsonl
+cat "$T2A_TMP"/comments-*.jsonl > "$T2A_TMP/all-comments.jsonl"
 ```
 
 Print totals:
@@ -71,12 +72,12 @@ This step takes ~5-10 minutes for prolific reviewers. That's expected.
 
 ## Step 3 — Synthesize (Sonnet agent)
 
-Spawn one Sonnet agent:
+Spawn one Sonnet agent — substitute the resolved `$T2A_TMP/all-comments.jsonl` path for `<COMMENTS_PATH>`:
 
 ```
 You are building a PR reviewer profile from raw review comment history.
 
-Comments are in /tmp/t2a-all-comments.jsonl — one JSON object per line (pr, repo, path, body, created_at).
+Comments are in <COMMENTS_PATH> — one JSON object per line (pr, repo, path, body, created_at).
 Read the file.
 
 Your job: find recurring patterns — things this reviewer flags repeatedly.

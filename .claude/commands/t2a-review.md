@@ -15,16 +15,21 @@ Run a multi-agent review on the current diff (or a GitHub PR URL) using your tea
 
 ## Step 1 — Gather the diff
 
+Create a private per-run temp directory first — fixed paths in `/tmp` are world-readable and tamperable on shared machines:
+```bash
+T2A_TMP=$(mktemp -d)
+```
+
 **If a PR URL was provided:**
 ```bash
 gh pr view <PR_URL>
-gh pr diff <PR_URL> > /tmp/t2a-review-diff.patch
+gh pr diff <PR_URL> > "$T2A_TMP/diff.patch"
 ```
 Use the PR title and description as context.
 
 **If no argument (local diff):**
 ```bash
-git diff main...HEAD > /tmp/t2a-review-diff.patch
+git diff main...HEAD > "$T2A_TMP/diff.patch"
 git diff main...HEAD --stat
 git branch --show-current
 ```
@@ -55,14 +60,14 @@ Cap the bundle at ~30k tokens. If it overflows, drop lowest-priority profiles fo
 
 ## Step 3 — Spawn 3 agents in parallel + skeptic
 
-Spawn all three agents in a **single message** so they run in parallel. Each reads from `/tmp/t2a-review-diff.patch`.
+Spawn all three agents in a **single message** so they run in parallel. Each reads the diff from `$T2A_TMP/diff.patch` — substitute the actual resolved path for `<DIFF_PATH>` in each prompt below.
 
 ### A. General reviewer (Haiku)
 
 ```
 You are a senior engineer doing a general code review — universal software engineering quality only.
 
-The diff is at /tmp/t2a-review-diff.patch. Read it.
+The diff is at <DIFF_PATH>. Read it.
 
 PR context: <<<PR_TITLE_AND_DESCRIPTION>>>
 
@@ -85,7 +90,7 @@ Return ONLY a JSON array. Each finding: {file, line, severity (must|should|sugge
 ```
 You are doing a code review applying this team's conventions. Below are the reviewer profiles and checklist, pre-filtered for this PR's tech stack.
 
-The diff is at /tmp/t2a-review-diff.patch. Read it.
+The diff is at <DIFF_PATH>. Read it.
 
 PR context: <<<PR_TITLE_AND_DESCRIPTION>>>
 
@@ -106,7 +111,7 @@ Return ONLY a JSON array. Each finding: {file, line, severity (must|should|sugge
 ```
 You are a senior engineer doing a holistic PR review.
 
-The diff is at /tmp/t2a-review-diff.patch. Read it.
+The diff is at <DIFF_PATH>. Read it.
 
 PR context: <<<PR_TITLE_AND_DESCRIPTION>>>
 
@@ -129,7 +134,7 @@ Keep highest severity. Union the reviewer names.
 ```
 You are a skeptical senior engineer reviewing these findings.
 
-The diff is at /tmp/t2a-review-diff.patch. Read it.
+The diff is at <DIFF_PATH>. Read it.
 
 For each finding:
 1. Does the cited file + line actually contain the issue described?
