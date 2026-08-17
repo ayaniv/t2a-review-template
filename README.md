@@ -41,11 +41,24 @@ The pipeline has a cheap deterministic phase before any model runs, then three r
 
 ## Setup
 
-### 1. Clone this repo into your project (or a shared team repo)
+Two ways to get this into your project — pick one.
+
+### Option A: Install as a plugin
+
+```
+/plugin marketplace add ayaniv/t2a-review-template
+/plugin install t2a-review@t2a-review-template
+```
+
+First run of either command copies `config.md`, `checklist.md`, and `team-members/_template.md` into your current project root (nothing is written outside it). Continue at step 2 below.
+
+### Option B: Clone into your project (or a shared team repo)
 
 ```bash
 git clone https://github.com/ayaniv/t2a-review-template
 ```
+
+Use this if you want the commands and templates version-controlled alongside your project from the start, or want to edit the commands themselves.
 
 ### 2. Configure your repos
 
@@ -82,10 +95,12 @@ Run it on your local diff before pushing a PR for review. Pass a PR URL to revie
 ## File structure
 
 ```
-.claude/
-  commands/
-    t2a-review.md                  # main review skill
-    t2a-review-add-team-member.md  # profile generator skill
+.claude-plugin/
+  plugin.json                      # plugin manifest
+  marketplace.json                 # lets this repo self-install as a marketplace
+commands/
+  t2a-review.md                  # main review skill
+  t2a-review-add-team-member.md  # profile generator skill
 team-members/
   _template.md                     # format reference
   <username>.md                    # one file per reviewer

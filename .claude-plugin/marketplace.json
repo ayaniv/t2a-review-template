@@ -1,0 +1,14 @@
+{
+  "name": "t2a-review-template",
+  "owner": {
+    "name": "Yaniv Aharon",
+    "url": "https://github.com/ayaniv"
+  },
+  "plugins": [
+    {
+      "name": "t2a-review",
+      "source": "./",
+      "description": "AI code reviewer that thinks like your team — built from your team's actual PR comment history."
+    }
+  ]
+}
