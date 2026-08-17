@@ -52,13 +52,14 @@ Two ways to get this into your project — pick one.
 
 First run of either command copies `config.md`, `checklist.md`, and `team-members/_template.md` into your current project root (nothing is written outside it). Continue at step 2 below.
 
-### Option B: Clone into your project (or a shared team repo)
+### Option B: Clone and install locally (or a shared team repo)
 
 ```bash
 git clone https://github.com/ayaniv/t2a-review-template
+/plugin install ./t2a-review-template
 ```
 
-Use this if you want the commands and templates version-controlled alongside your project from the start, or want to edit the commands themselves.
+Use this if you want the commands and templates version-controlled alongside your project from the start, or want to edit the commands themselves. The `/plugin install` step is required — Claude Code only auto-discovers commands from `.claude/commands/`, and this repo's commands live in the plugin-standard `commands/` directory instead, so a plain clone alone won't register the slash commands.
 
 ### 2. Configure your repos
 
