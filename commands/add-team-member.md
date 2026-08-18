@@ -1,3 +1,7 @@
+---
+description: Generate a reviewer profile by mining a team member's PR review history from the last 3 years.
+---
+
 # Add Team Member Profile
 
 Generate a reviewer profile by mining a team member's PR review history from the last 3 years.

@@ -1,3 +1,7 @@
+---
+description: Run a multi-agent pre-PR review against your diff (or a GitHub PR URL) using your team's reviewer profiles.
+---
+
 # T2A Pre-PR Self-Review
 
 Run a multi-agent review on the current diff (or a GitHub PR URL) using your team's reviewer profiles.
