@@ -1,5 +1,6 @@
 {
   "name": "t2a-review-template",
+  "description": "Marketplace hosting the t2a-review plugin — an AI code reviewer that thinks like your team.",
   "owner": {
     "name": "Yaniv Aharon",
     "url": "https://github.com/ayaniv"
