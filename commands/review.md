@@ -5,11 +5,25 @@ Run a multi-agent review on the current diff (or a GitHub PR URL) using your tea
 ## Invocation
 
 ```
-/t2a-review [PR_URL]
+/t2a-review:review [PR_URL]
 ```
 
 - No argument: reviews local `git diff main...HEAD`
 - PR URL: reviews that PR's diff
+
+---
+
+## Step 0 — Bootstrap (installed-plugin mode only)
+
+If `checklist.md` doesn't exist in the current project root, this is the first run after installing via `/plugin install` rather than cloning the repo. Copy the templates in before continuing:
+
+```bash
+cp "$CLAUDE_PLUGIN_ROOT/checklist.md" ./checklist.md
+mkdir -p team-members
+cp "$CLAUDE_PLUGIN_ROOT/team-members/_template.md" ./team-members/_template.md 2>/dev/null || true
+```
+
+Tell the user `checklist.md` was created with placeholder conventions and should be edited to match their team, and that they should run `/t2a-review:add-team-member` for each reviewer before profiles exist.
 
 ---
 

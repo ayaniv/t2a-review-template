@@ -6,7 +6,7 @@ Forked from the system described in [We Accidentally Built an AI Code Reviewer T
 
 ## What it does
 
-`/t2a-review` runs a multi-agent pre-PR review against your diff. It applies:
+`/t2a-review:review` runs a multi-agent pre-PR review against your diff. It applies:
 
 - Your team's reviewer profiles (mined from real PR comment history)
 - Your codebase's conventions (`checklist.md`)
@@ -41,11 +41,25 @@ The pipeline has a cheap deterministic phase before any model runs, then three r
 
 ## Setup
 
-### 1. Clone this repo into your project (or a shared team repo)
+Two ways to get this into your project — pick one.
+
+### Option A: Install as a plugin
+
+```
+/plugin marketplace add ayaniv/t2a-review-template
+/plugin install t2a-review@t2a-review-template
+```
+
+First run of either command copies `config.md`, `checklist.md`, and `team-members/_template.md` into your current project root (nothing is written outside it). Continue at step 2 below.
+
+### Option B: Clone and install locally (or a shared team repo)
 
 ```bash
 git clone https://github.com/ayaniv/t2a-review-template
+/plugin install ./t2a-review-template
 ```
+
+Use this if you want the commands and templates version-controlled alongside your project from the start, or want to edit the commands themselves. The `/plugin install` step is required — Claude Code only auto-discovers commands from `.claude/commands/`, and this repo's commands live in the plugin-standard `commands/` directory instead, so a plain clone alone won't register the slash commands.
 
 ### 2. Configure your repos
 
@@ -56,7 +70,7 @@ Edit `config.md` and set your GitHub repos — the ones your team reviews PRs in
 For each team member who reviews PRs, run:
 
 ```
-/t2a-review-add-team-member <github-username>
+/t2a-review:add-team-member <github-username>
 ```
 
 This mines their last 3 years of PR review comments, synthesizes recurring patterns, and writes a profile to `team-members/<username>.md`. Takes ~5-10 minutes for prolific reviewers.
@@ -70,22 +84,24 @@ Unlike the reviewer profiles, `checklist.md` isn't mined — it's meant to be wr
 ### 5. Run it
 
 ```
-/t2a-review
+/t2a-review:review
 ```
 
 Run it on your local diff before pushing a PR for review. Pass a PR URL to review an existing PR:
 
 ```
-/t2a-review https://github.com/your-org/your-repo/pull/123
+/t2a-review:review https://github.com/your-org/your-repo/pull/123
 ```
 
 ## File structure
 
 ```
-.claude/
-  commands/
-    t2a-review.md                  # main review skill
-    t2a-review-add-team-member.md  # profile generator skill
+.claude-plugin/
+  plugin.json                      # plugin manifest
+  marketplace.json                 # lets this repo self-install as a marketplace
+commands/
+  review.md                        # main review skill (/t2a-review:review)
+  add-team-member.md               # profile generator skill (/t2a-review:add-team-member)
 team-members/
   _template.md                     # format reference
   <username>.md                    # one file per reviewer
@@ -96,7 +112,7 @@ config.md                          # repo configuration
 ## Adding a new team member
 
 ```
-/t2a-review-add-team-member <github-username>
+/t2a-review:add-team-member <github-username>
 ```
 
 The skill fetches all PRs they reviewed in the last 3 years, extracts patterns, shows you a draft, and writes the file on confirmation.

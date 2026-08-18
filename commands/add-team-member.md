@@ -5,8 +5,23 @@ Generate a reviewer profile by mining a team member's PR review history from the
 ## Invocation
 
 ```
-/t2a-review-add-team-member <github-username>
+/t2a-review:add-team-member <github-username>
 ```
+
+---
+
+## Step 0 — Bootstrap (installed-plugin mode only)
+
+If `config.md` doesn't exist in the current project root, this is the first run after installing via `/plugin install` rather than cloning the repo. Copy the templates in before continuing:
+
+```bash
+cp "$CLAUDE_PLUGIN_ROOT/config.md" ./config.md
+mkdir -p team-members
+cp "$CLAUDE_PLUGIN_ROOT/team-members/_template.md" ./team-members/_template.md
+cp "$CLAUDE_PLUGIN_ROOT/checklist.md" ./checklist.md 2>/dev/null || true
+```
+
+Tell the user `config.md` was created and needs their repo list before this can run.
 
 ---
 
