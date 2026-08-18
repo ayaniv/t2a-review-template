@@ -17,7 +17,7 @@
     "multi-agent"
   ],
   "commands": [
-    "./commands/t2a-review.md",
-    "./commands/t2a-review-add-team-member.md"
+    "./commands/review.md",
+    "./commands/add-team-member.md"
   ]
 }

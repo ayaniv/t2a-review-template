@@ -5,7 +5,7 @@ Generate a reviewer profile by mining a team member's PR review history from the
 ## Invocation
 
 ```
-/t2a-review:t2a-review-add-team-member <github-username>
+/t2a-review:add-team-member <github-username>
 ```
 
 ---
